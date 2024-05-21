@@ -6,6 +6,7 @@ import {useNavigate} from "react-router-dom";
 export default function Submissions() {
   const [formDataList, setFormDataList] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedIndexes, setSelectedIndexes] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,11 +23,21 @@ export default function Submissions() {
     }, 500);
   };
 
-  const handleDelete = (index) => {
-    const updatedFormDataList = [...formDataList];
-    updatedFormDataList.splice(index, 1);
+  const handleBulkDelete = () => {
+    const updatedFormDataList = formDataList.filter(
+      (_, index) => !selectedIndexes.includes(index)
+    );
     setFormDataList(updatedFormDataList);
+    setSelectedIndexes([]);
     localStorage.setItem("feedbackData", JSON.stringify(updatedFormDataList));
+  };
+
+  const handleCheckboxChange = (index) => {
+    if (selectedIndexes.includes(index)) {
+      setSelectedIndexes(selectedIndexes.filter((i) => i !== index));
+    } else {
+      setSelectedIndexes([...selectedIndexes, index]);
+    }
   };
 
   // Filter formDataList based on searchQuery
@@ -35,13 +46,13 @@ export default function Submissions() {
   );
 
   return (
-    <div className="container bg-gray-100 mx-auto px-4 py-6">
+    <div className="container bg-gray-100 mx-auto px-4 py-6 relative">
       <div className="ml-4">
         <h1 className="text-3xl text-gray-700 font-bold">Aromatic bar</h1>
       </div>
       <div className="rounded-lg p-4">
         <div className="flex justify-end items-center mb-4">
-          <div className="flex border roun border-gray-400">
+          <div className="flex border rounded border-gray-400">
             <input
               type="text"
               placeholder="search..."
@@ -60,15 +71,16 @@ export default function Submissions() {
 
           <button
             onClick={handleNewForm}
-            className=" ml-4 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded"
+            className="ml-4 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded"
           >
             Add New
           </button>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-left">
+          <table className="w-full whitespace-nowrap text-left">
             <thead>
               <tr className="bg-violet-100 text-gray-700">
+                <th className="p-4 border-r">Select</th>
                 <th className="p-4 border-r">Form details</th>
                 <th className="p-4 border-r">Customer Name</th>
                 <th className="p-4 border-r">Email</th>
@@ -83,7 +95,6 @@ export default function Submissions() {
                 <th className="p-4 border-r">
                   Please rate your overall dining experience
                 </th>
-                <th className="p-4">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -92,6 +103,13 @@ export default function Submissions() {
                   key={index}
                   className="border-b border-r bg-white text-gray-600"
                 >
+                  <td className="p-4 border-r">
+                    <input
+                      type="checkbox"
+                      checked={selectedIndexes.includes(index)}
+                      onChange={() => handleCheckboxChange(index)}
+                    />
+                  </td>
                   <td className="p-4 border-r">
                     <button className="text-blue-500">View details</button>
                   </td>
@@ -102,20 +120,18 @@ export default function Submissions() {
                   <td className="p-4 border-r">{formData.cleanliness}</td>
                   <td className="p-4 border-r">{formData.beverageQuality}</td>
                   <td className="p-4 border-r">{formData.overallExperience}</td>
-                  <td className="p-4">
-                    <button
-                      onClick={() => handleDelete(index)}
-                      className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-3 rounded"
-                    >
-                      Delete
-                    </button>
-                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       </div>
+      <button
+        onClick={handleBulkDelete}
+        className="fixed bottom-4 right-4 bg-pink-600 hover:bg-pink-700 text-white font-medium py-2 px-4 rounded-sm"
+      >
+        Delete
+      </button>
     </div>
   );
 }
